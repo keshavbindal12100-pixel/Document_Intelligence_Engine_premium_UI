@@ -1,4 +1,6 @@
-from pydantic import AnyHttpUrl
+import json
+from typing import Any
+from pydantic import AnyHttpUrl, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -26,9 +28,22 @@ class Settings(BaseSettings):
         "http://127.0.0.1:3000",
         "http://127.0.0.1:8000",
         "http://127.0.0.1:5173",
-        # NOTE: Do NOT add "*" or "null" here in production — they bypass CORS security.
-        # For production, restrict to your actual frontend domain(s) only.
     ]
+
+    @field_validator("BACKEND_CORS_ORIGINS", mode="before")
+    @classmethod
+    def assemble_cors_origins(cls, v: Any) -> list[str]:
+        if isinstance(v, str):
+            v_stripped = v.strip()
+            if v_stripped.startswith("[") and v_stripped.endswith("]"):
+                try:
+                    return json.loads(v_stripped)
+                except Exception:
+                    pass
+            return [i.strip() for i in v_stripped.split(",") if i.strip()]
+        elif isinstance(v, (list, tuple)):
+            return [str(i) for i in v]
+        return []
 
     # Security
     SECRET_KEY: str = "supersecret_jwt_key_change_me_in_production_min32chars"

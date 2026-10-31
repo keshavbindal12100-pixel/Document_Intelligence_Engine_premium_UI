@@ -1,0 +1,7 @@
+{
+  "rewrites": [
+    { "source": "/app.html", "destination": "/app.html" },
+    { "source": "/qa.html", "destination": "/qa.html" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
